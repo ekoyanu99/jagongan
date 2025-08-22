@@ -3,6 +3,67 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Menambahkan utility untuk menyembunyikan scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* Override wallet adapter styles untuk dropdown */
+.wallet-adapter-modal-wrapper {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.wallet-adapter-modal-button-close {
+  background: transparent;
+}
+
+.wallet-adapter-modal-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wallet-adapter-modal-list li:not(:first-child) {
+  margin-top: 0.5rem;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  width: 100%;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background-color: #2563eb;
+}
+
+/* Style untuk disconnect button dalam dropdown custom */
+.wallet-adapter-dropdown-button {
+  background: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  font-size: 0.875rem !important;
+  font-weight: normal !important;
+}
+
+.wallet-adapter-dropdown-button:hover {
+  background: transparent !important;
+  color: inherit !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

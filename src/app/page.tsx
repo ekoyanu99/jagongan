@@ -1,5 +1,5 @@
-import { DashboardFeature } from '@/components/dashboard/dashboard-feature'
+import TwitterFeature from '@/components/twitter/twitter-feature'
 
 export default function Home() {
-  return <DashboardFeature />
+  return <TwitterFeature />
 }
