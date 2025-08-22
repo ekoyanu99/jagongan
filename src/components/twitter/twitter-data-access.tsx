@@ -44,12 +44,14 @@ export function useTwitterProgram() {
     },
   })
 
-  // tipTweete
+  // tipTweet
   const tipTweet = useMutation({
     mutationKey: ['twitter', 'tipTweet'],
-    mutationFn: async ({ tweet, amount }: { tweet: any; amount: number }) => {
+    mutationFn: async ({ tweet, amount }: { tweet: any; amount: number | import('bn.js') }) => {
+      const BN = (await import('bn.js')).default
+      const amountBN = typeof amount === 'number' ? new BN(amount) : amount
       return program.methods
-        .tipTweet(amount)
+        .tipTweet(amountBN)
         .accounts({
           tipper: provider.wallet.publicKey,
           tweetAuthor: tweet.account.author ?? tweet.account.tweetAuthor,

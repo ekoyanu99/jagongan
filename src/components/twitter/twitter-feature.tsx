@@ -1,11 +1,8 @@
 'use client'
 
 import { useWallet } from '@solana/wallet-adapter-react'
-import { ExplorerLink } from '../cluster/cluster-ui'
-import { WalletButton } from '../solana/solana-provider'
 import { useTwitterProgram } from './twitter-data-access'
 import { TwitterCreate } from './twitter-ui'
-import { AppHero } from '../app-hero'
 import { ellipsify } from '@/lib/utils'
 import TweetCard from './tweet-card'
 import { useEffect, useState, useCallback } from 'react'

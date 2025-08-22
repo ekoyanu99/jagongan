@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTwitterProgram } from './twitter-data-access'
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -87,14 +87,14 @@ export default function TweetCard({
   const handleTip = (e: React.FormEvent) => {
     e.preventDefault()
     if (tipAmount > 0) {
-      const amountInLamports = Math.floor(tipAmount * LAMPORTS_PER_SOL)
+      const amountInLamports = new BN(Math.floor(tipAmount * LAMPORTS_PER_SOL))
       handleAction(tipTweet.mutateAsync({ tweet, amount: amountInLamports }), onTip)
       setShowTipForm(false)
     }
   }
 
   const handleQuickTip = (amount: number) => {
-    const amountInLamports = Math.floor(amount * LAMPORTS_PER_SOL)
+    const amountInLamports = new BN(Math.floor(amount * LAMPORTS_PER_SOL))
     handleAction(tipTweet.mutateAsync({ tweet, amount: amountInLamports }), onTip)
     setShowTipForm(false)
   }

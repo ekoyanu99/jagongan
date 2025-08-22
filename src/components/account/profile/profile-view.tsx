@@ -4,7 +4,6 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { useTwitterProgram } from '../../twitter/twitter-data-access'
 import TweetCard from '../../twitter/tweet-card'
 import { useMemo } from 'react'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { ProfileHero } from './profile-ui'
 
 export function ProfileView() {
