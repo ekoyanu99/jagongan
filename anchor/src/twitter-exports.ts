@@ -1,8 +1,8 @@
 // Here we export some useful types and functions for interacting with the Anchor program.
 import { AnchorProvider, Program } from '@coral-xyz/anchor'
 import { PublicKey } from '@solana/web3.js'
-import TwitterIDL from '../target/idl/twitter.json'
-import type { Twitter } from '../target/types/twitter'
+import TwitterIDL from './twitter.json'
+import type { Twitter } from './twitter'
 
 // Re-export the generated IDL and type
 export { Twitter, TwitterIDL }
