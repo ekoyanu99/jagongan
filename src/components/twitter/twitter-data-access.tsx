@@ -122,6 +122,39 @@ export function useTwitterProgram() {
     onError: () => toast.error('Failed to comment'),
   })
 
+  // Remove comment
+  const removeComment = useMutation({
+    mutationKey: ['twitter', 'removeComment'],
+    mutationFn: async ({ commentPda }: { commentPda: any }) => {
+      return program.methods
+        .commentRemove()
+        .accounts({
+          commentAuthor: provider.wallet.publicKey,
+          comment: commentPda,
+        })
+        .rpc()
+    },
+    onSuccess: (signature) => transactionToast(signature),
+    onError: () => toast.error('Failed to remove comment'),
+  })
+
+  // Remove reaction
+  const removeReaction = useMutation({
+    mutationKey: ['twitter', 'removeReaction'],
+    mutationFn: async ({ tweet, reactionPda }: { tweet: any; reactionPda: any }) => {
+      return program.methods
+        .reactionRemove()
+        .accounts({
+          reactionAuthor: provider.wallet.publicKey,
+          tweetReaction: reactionPda,
+          tweet: tweet.publicKey,
+        })
+        .rpc()
+    },
+    onSuccess: (signature) => transactionToast(signature),
+    onError: () => toast.error('Failed to remove reaction'),
+  })
+
   return {
     program,
     programId,
@@ -131,5 +164,7 @@ export function useTwitterProgram() {
     likeTweet,
     dislikeTweet,
     commentTweet,
+    removeComment,
+    removeReaction,
   }
 }
