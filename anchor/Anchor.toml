@@ -5,8 +5,8 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-basic = "JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H"
+[programs.devnet]
+twitter = "47ofz98ZHkDxec7pBjBqPwq2VqhpK4h1BDhLa8h7zZWb"
 
 [registry]
 url = "https://api.apr.dev"

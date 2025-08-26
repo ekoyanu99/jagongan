@@ -3,6 +3,7 @@ use anchor_lang::system_program;
 use crate::states::Tweet;
 
 const TREASURY_PUBKEY: Pubkey = pubkey!("BGwManNyZ2dQpUTRCDBdyMd8BqKF7bS1EJA7fycMmAw6");
+// const TREASURY_PUBKEY: Pubkey = pubkey!("FgNwXzosDf4A4oYfc8hipnj2KaU9TwUgMHNTijX7hznb");
 const ROYALTY_NUMERATOR: u64 = 8;
 const ROYALTY_DENOMINATOR: u64 = 1000;
 

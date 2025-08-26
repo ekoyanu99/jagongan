@@ -2,12 +2,16 @@ import * as anchor from '@coral-xyz/anchor'
 import { Program } from '@coral-xyz/anchor'
 import { Twitter } from '../target/types/twitter'
 import { PublicKey } from '@solana/web3.js'
-import { assert } from 'chai'
+import assert from 'assert'
 import crypto from 'crypto'
+
+jest.setTimeout(30000)
 
 const TWEET_SEED = 'TWEET_SEED'
 const TWEET_REACTION = 'TWEET_REACTION_SEED'
 const COMMENT_SEED = 'COMMENT_SEED'
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 describe('twitter', () => {
   const provider = anchor.AnchorProvider.env()
@@ -47,7 +51,7 @@ describe('twitter', () => {
   const unicode_topic = '🚀 Crypto'
   const unicode_content = 'Testing with emojis 🎉✨🔥'
 
-  describe('Initialize Tweet', async () => {
+  describe('Initialize Tweet', () => {
     it('Should successfully initialize a tweet with valid topic and content', async () => {
       await airdrop(provider.connection, bob.publicKey)
       const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
@@ -220,7 +224,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error for duplicate tweet with same topic and author",
         )
@@ -233,7 +237,7 @@ describe('twitter', () => {
     })
 
     it('Should successfully initialize second tweet with different topic for same author', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
 
       await program.methods
         .initialize(topic_bob4, content_bob4)
@@ -265,7 +269,7 @@ describe('twitter', () => {
     })
   })
 
-  describe('Add Reaction', async () => {
+  describe('Add Reaction', () => {
     it('Should successfully add like reaction to tweet', async () => {
       await airdrop(provider.connection, alice.publicKey)
 
@@ -312,7 +316,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error when trying to like the same tweet twice",
         )
@@ -322,7 +326,7 @@ describe('twitter', () => {
     })
 
     it('Should fail when attempting to dislike a tweet that is already liked', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -339,7 +343,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error when trying to dislike a tweet that is already liked",
         )
@@ -350,11 +354,11 @@ describe('twitter', () => {
         'Should not be able to dislike a tweet that is already liked (reaction account already exists)',
       )
 
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob1, content_bob1, 1, 0, tweet_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob1, content_bob1, 1, 0, tweet_bump)
     })
 
     it('Should successfully add dislike reaction to different tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       await program.methods
@@ -367,12 +371,12 @@ describe('twitter', () => {
         })
         .signers([alice])
         .rpc({ commitment: 'confirmed' })
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
-      await checkReaction(program, reaction_pkey, alice.PublicKey, tweet_pkey, reaction_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
+      await checkReaction(program, reaction_pkey, alice.publicKey, tweet_pkey, reaction_bump)
     })
 
     it("Should correctly set reaction type to 'dislike' enum variant", async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       let reactionData = await program.account.reaction.fetch(reaction_pkey)
@@ -380,7 +384,7 @@ describe('twitter', () => {
     })
 
     it('Should fail when attempting to dislike the same tweet twice', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -388,7 +392,7 @@ describe('twitter', () => {
         await program.methods
           .dislikeTweet()
           .accounts({
-            reactionAuthor: alice.PublicKey,
+            reactionAuthor: alice.publicKey,
             tweetReaction: reaction_pkey,
             tweet: tweet_pkey,
             systemProgram: anchor.web3.SystemProgram.programId,
@@ -397,20 +401,20 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error when trying to dislike the same tweet twice",
         )
       }
       assert.strictEqual(should_fail, 'Failed', 'Should not be able to dislike the same tweet twice')
 
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
 
       try {
         await program.methods
           .likeTweet()
           .accounts({
-            reactionAuthor: alice.PublicKey,
+            reactionAuthor: alice.publicKey,
             tweetReaction: reaction_pkey,
             tweet: tweet_pkey,
             systemProgram: anchor.web3.SystemProgram.programId,
@@ -419,7 +423,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error when trying to like a tweet that is already disliked",
         )
@@ -429,11 +433,11 @@ describe('twitter', () => {
         'Failed',
         'Should not be able to like a tweet that is already disliked (reaction account already exists)',
       )
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob4, content_bob4, 0, 1, tweet_bump)
     })
 
     it('Should allow multiple users to react to the same tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(charlie.publicKey, tweet_pkey, program.programId)
 
       await program.methods
@@ -448,12 +452,12 @@ describe('twitter', () => {
         .rpc({ commitment: 'confirmed' })
 
       // Tweet should now have 2 likes (Alice + Charlie)
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob1, content_bob1, 2, 0, tweet_bump)
-      await checkReaction(program, reaction_pkey, charlie.PublicKey, tweet_pkey, reaction_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob1, content_bob1, 2, 0, tweet_bump)
+      await checkReaction(program, reaction_pkey, charlie.publicKey, tweet_pkey, reaction_bump)
     })
 
     it('Should fail when attempting to react to non-existent tweet', async () => {
-      const [fake_tweet_pkey, fake_tweet_bump] = getTweetAddress('NonExistent', bob.PublicKey, program.programId)
+      const [fake_tweet_pkey, fake_tweet_bump] = getTweetAddress('NonExistent', bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, fake_tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -470,7 +474,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist') || error.message.includes('AccountNotInitialized'),
           'Expected account not found error when trying to react to non-existent tweet',
         )
@@ -479,9 +483,9 @@ describe('twitter', () => {
     })
   })
 
-  describe('Remove Reaction', async () => {
+  describe('Remove Reaction', () => {
     it('Should successfully remove existing reaction from tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       await program.methods
@@ -493,11 +497,11 @@ describe('twitter', () => {
         })
         .signers([alice])
         .rpc({ commitment: 'confirmed' })
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob4, content_bob4, 0, 0, tweet_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob4, content_bob4, 0, 0, tweet_bump)
     })
 
     it('Should properly delete reaction account after removal', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -505,7 +509,7 @@ describe('twitter', () => {
         let reactionData = await program.account.reaction.fetch(reaction_pkey)
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist or has no data'),
           'Reaction account should be deleted after removal',
         )
@@ -514,7 +518,7 @@ describe('twitter', () => {
     })
 
     it('Should allow adding new reaction after previous reaction was removed', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(alice.publicKey, tweet_pkey, program.programId)
 
       await program.methods
@@ -527,12 +531,12 @@ describe('twitter', () => {
         })
         .signers([alice])
         .rpc({ commitment: 'confirmed' })
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob4, content_bob4, 1, 0, tweet_bump)
-      await checkReaction(program, reaction_pkey, alice.PublicKey, tweet_pkey, reaction_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob4, content_bob4, 1, 0, tweet_bump)
+      await checkReaction(program, reaction_pkey, alice.publicKey, tweet_pkey, reaction_bump)
     })
 
     it('Should fail when attempting to remove non-existent reaction', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, charlie.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, charlie.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(bob.publicKey, tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -548,7 +552,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist') || error.message.includes('AccountNotInitialized'),
           'Expected account not found error when trying to remove non-existent reaction',
         )
@@ -557,7 +561,7 @@ describe('twitter', () => {
     })
 
     it("Should fail when attempting to remove another user's reaction", async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(charlie.publicKey, tweet_pkey, program.programId)
 
       let should_fail = 'This should fail'
@@ -574,7 +578,7 @@ describe('twitter', () => {
       } catch (error) {
         should_fail = 'Failed'
         // This should fail due to account constraint mismatch
-        assert.isTrue(
+        assert.ok(
           error.message.includes('constraint') || error.message.includes('seeds'),
           "Expected constraint or seeds error when trying to remove someone else's reaction",
         )
@@ -587,9 +591,9 @@ describe('twitter', () => {
     })
   })
 
-  describe('Add Comment', async () => {
+  describe('Add Comment', () => {
     it('Should fail when attempting to add comment exceeding length limit', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [comment_pkey, comment_bump] = getCommentAddress(
         comment_alice1,
         alice.publicKey,
@@ -626,7 +630,7 @@ describe('twitter', () => {
     })
 
     it('Should successfully add comment with valid length to tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [comment_pkey, comment_bump] = getCommentAddress(
         comment_alice2,
         alice.publicKey,
@@ -648,7 +652,7 @@ describe('twitter', () => {
     })
 
     it('Should successfully add comment with exactly 500 characters (boundary test)', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const max_comment = 'C'.repeat(500)
       const [comment_pkey, comment_bump] = getCommentAddress(
         max_comment,
@@ -672,7 +676,7 @@ describe('twitter', () => {
     })
 
     it('Should successfully add empty comment to tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const empty_comment = ''
       const [comment_pkey, comment_bump] = getCommentAddress(
         empty_comment,
@@ -696,7 +700,7 @@ describe('twitter', () => {
     })
 
     it('Should successfully add comment with unicode characters and emojis', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const unicode_comment = 'Great tweet! 🎉✨ Love it! 💯'
       const [comment_pkey, comment_bump] = getCommentAddress(
         unicode_comment,
@@ -720,7 +724,7 @@ describe('twitter', () => {
     })
 
     it('Should allow multiple users to comment on the same tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const charlie_comment = "Charlie's comment here"
       const [comment_pkey, comment_bump] = getCommentAddress(
         charlie_comment,
@@ -744,7 +748,7 @@ describe('twitter', () => {
     })
 
     it('Should fail when attempting to comment on non-existent tweet', async () => {
-      const [fake_tweet_pkey, fake_tweet_bump] = getTweetAddress('FakeTweet', bob.PublicKey, program.programId)
+      const [fake_tweet_pkey, fake_tweet_bump] = getTweetAddress('FakeTweet', bob.publicKey, program.programId)
       const test_comment = 'This should fail'
       const [comment_pkey, comment_bump] = getCommentAddress(
         test_comment,
@@ -767,7 +771,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist') || error.message.includes('AccountNotInitialized'),
           'Expected account not found error when trying to comment on non-existent tweet',
         )
@@ -776,7 +780,7 @@ describe('twitter', () => {
     })
 
     it('Should fail when attempting to create duplicate comment with same content', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [comment_pkey, comment_bump] = getCommentAddress(
         comment_alice2,
         alice.publicKey,
@@ -798,7 +802,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           SolanaError.contains(error.logs, 'already in use'),
           "Expected 'already in use' error when trying to create duplicate comment",
         )
@@ -811,9 +815,9 @@ describe('twitter', () => {
     })
   })
 
-  describe('Remove Comment', async () => {
+  describe('Remove Comment', () => {
     it('Should successfully remove existing comment from tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [comment_pkey, comment_bump] = getCommentAddress(
         comment_alice2,
         alice.publicKey,
@@ -835,7 +839,7 @@ describe('twitter', () => {
         let commentData = await program.account.comment.fetch(comment_pkey)
       } catch (error) {
         thisShouldFail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist or has no data'),
           'Comment account should be deleted after removal',
         )
@@ -844,7 +848,7 @@ describe('twitter', () => {
     })
 
     it('Should fail when attempting to remove non-existent comment', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const fake_comment = "This comment doesn't exist"
       const [comment_pkey, comment_bump] = getCommentAddress(
         fake_comment,
@@ -865,7 +869,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('Account does not exist') || error.message.includes('AccountNotInitialized'),
           'Expected account not found error when trying to remove non-existent comment',
         )
@@ -874,7 +878,7 @@ describe('twitter', () => {
     })
 
     it("Should fail when attempting to remove another user's comment", async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const unicode_comment = 'Great tweet! 🎉✨ Love it! 💯'
       const [comment_pkey, comment_bump] = getCommentAddress(
         unicode_comment,
@@ -895,7 +899,7 @@ describe('twitter', () => {
           .rpc({ commitment: 'confirmed' })
       } catch (error) {
         should_fail = 'Failed'
-        assert.isTrue(
+        assert.ok(
           error.message.includes('constraint') || error.message.includes('seeds'),
           "Expected constraint or seeds error when trying to remove someone else's comment",
         )
@@ -908,7 +912,7 @@ describe('twitter', () => {
     })
 
     it('Should allow recreating comment with same content after deletion', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
       const [comment_pkey, comment_bump] = getCommentAddress(
         comment_alice2,
         alice.publicKey,
@@ -928,13 +932,13 @@ describe('twitter', () => {
         .signers([alice])
         .rpc({ commitment: 'confirmed' })
 
-      await checkComment(program, comment_pkey, alice.PublicKey, tweet_pkey, comment_alice2, comment_bump)
+      await checkComment(program, comment_pkey, alice.publicKey, tweet_pkey, comment_alice2, comment_bump)
     })
   })
 
-  describe('Edge Cases and Error Handling', async () => {
+  describe('Edge Cases and Error Handling', () => {
     it('Should allow tweet author to react to their own tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const [reaction_pkey, reaction_bump] = getReactionAddress(bob.publicKey, tweet_pkey, program.programId)
 
       await program.methods
@@ -949,13 +953,13 @@ describe('twitter', () => {
         .rpc({ commitment: 'confirmed' })
 
       // Tweet should now have 2 likes and 1 dislike (Alice+Charlie likes, Bob dislike)
-      await checkTweet(program, tweet_pkey, bob.PublicKey, topic_bob1, content_bob1, 2, 1, tweet_bump)
+      await checkTweet(program, tweet_pkey, bob.publicKey, topic_bob1, content_bob1, 2, 1, tweet_bump)
     })
 
     it('Should allow tweet author to comment on their own tweet', async () => {
-      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
+      const [tweet_pkey, tweet_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
       const bob_comment = 'Thanks for the likes everyone!'
-      const [comment_pkey, comment_bump] = getCommentAddress(bob_comment, bob.PublicKey, tweet_pkey, program.programId)
+      const [comment_pkey, comment_bump] = getCommentAddress(bob_comment, bob.publicKey, tweet_pkey, program.programId)
 
       await program.methods
         .commentTweet(bob_comment)
@@ -968,21 +972,21 @@ describe('twitter', () => {
         .signers([bob])
         .rpc({ commitment: 'confirmed' })
 
-      await checkComment(program, comment_pkey, bob.PublicKey, tweet_pkey, bob_comment, comment_bump)
+      await checkComment(program, comment_pkey, bob.publicKey, tweet_pkey, bob_comment, comment_bump)
     })
 
     it('Should maintain correct final state across all tweets and reactions', async () => {
       // Bob's first tweet should have: 2 likes, 1 dislike
-      const [tweet1_pkey, tweet1_bump] = getTweetAddress(topic_bob1, bob.PublicKey, program.programId)
-      await checkTweet(program, tweet1_pkey, bob.PublicKey, topic_bob1, content_bob1, 2, 1, tweet1_bump)
+      const [tweet1_pkey, tweet1_bump] = getTweetAddress(topic_bob1, bob.publicKey, program.programId)
+      await checkTweet(program, tweet1_pkey, bob.publicKey, topic_bob1, content_bob1, 2, 1, tweet1_bump)
 
       // Bob's second tweet should have: 1 like, 0 dislikes
-      const [tweet2_pkey, tweet2_bump] = getTweetAddress(topic_bob4, bob.PublicKey, program.programId)
-      await checkTweet(program, tweet2_pkey, bob.PublicKey, topic_bob4, content_bob4, 1, 0, tweet2_bump)
+      const [tweet2_pkey, tweet2_bump] = getTweetAddress(topic_bob4, bob.publicKey, program.programId)
+      await checkTweet(program, tweet2_pkey, bob.publicKey, topic_bob4, content_bob4, 1, 0, tweet2_bump)
 
       // Charlie's tweet should have: 0 likes, 0 dislikes
-      const [tweet3_pkey, tweet3_bump] = getTweetAddress(topic_bob1, charlie.PublicKey, program.programId)
-      await checkTweet(program, tweet3_pkey, charlie.PublicKey, topic_bob1, "Charlie's version", 0, 0, tweet3_bump)
+      const [tweet3_pkey, tweet3_bump] = getTweetAddress(topic_bob1, charlie.publicKey, program.programId)
+      await checkTweet(program, tweet3_pkey, charlie.publicKey, topic_bob1, "Charlie's version", 0, 0, tweet3_bump)
     })
   })
 
@@ -990,18 +994,18 @@ describe('twitter', () => {
     let tweetPda: PublicKey
     let author: anchor.web3.Keypair
     let tipper: anchor.web3.Keypair
+    // const TREASURY_PUBKEY = new anchor.web3.PublicKey('BGwManNyZ2dQpUTRCDBdyMd8BqKF7bS1EJA7fycMmAw6')
+    const TREASURY_PUBKEY = provider.wallet.publicKey
     const tipAmount = 0.1 * anchor.web3.LAMPORTS_PER_SOL
 
-    before(async () => {
+    beforeAll(async () => {
       author = anchor.web3.Keypair.generate()
       tipper = anchor.web3.Keypair.generate()
-      // Airdrop SOL ke author dan tipper
-      await provider.connection.confirmTransaction(
-        await provider.connection.requestAirdrop(author.publicKey, anchor.web3.LAMPORTS_PER_SOL),
-      )
-      await provider.connection.confirmTransaction(
-        await provider.connection.requestAirdrop(tipper.publicKey, anchor.web3.LAMPORTS_PER_SOL),
-      )
+
+      // Airdrop lebih banyak SOL (2 SOL) untuk cover royalty fees
+      await airdrop(provider.connection, author.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL)
+      await airdrop(provider.connection, tipper.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL)
+
       // Buat tweet
       const topic = 'tiptest'
       const content = 'please tip me!'
@@ -1013,6 +1017,7 @@ describe('twitter', () => {
         ],
         program.programId,
       )[0]
+
       await program.methods
         .initialize(topic, content)
         .accounts({
@@ -1021,31 +1026,73 @@ describe('twitter', () => {
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .signers([author])
-        .rpc()
+        .rpc({ commitment: 'confirmed' })
     })
 
-    it('can tip a tweet and totalTips increases', async () => {
-      const tweetBefore = await program.account.tweet.fetch(tweetPda)
-      const totalTipsBefore = tweetBefore.totalTips.toNumber()
+    it('should allow a user to tip a tweet and update totalTips', async () => {
       await program.methods
         .tipTweet(new anchor.BN(tipAmount))
         .accounts({
-          tweet: tweetPda,
           tipper: tipper.publicKey,
-          author: author.publicKey,
+          tweetAuthor: author.publicKey,
+          treasury: TREASURY_PUBKEY,
+          tweet: tweetPda,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .signers([tipper])
-        .rpc()
-      const tweetAfter = await program.account.tweet.fetch(tweetPda)
-      const totalTipsAfter = tweetAfter.totalTips.toNumber()
-      assert.equal(totalTipsAfter, totalTipsBefore + tipAmount, 'Total tips should increase by tip amount')
+        .rpc({ commitment: 'confirmed' })
+
+      const tweetData = await program.account.tweet.fetch(tweetPda)
+      expect(tweetData.totalTips.toNumber()).toBe(tipAmount)
+    })
+
+    it('should fail if tip amount is zero', async () => {
+      try {
+        await program.methods
+          .tipTweet(new anchor.BN(0))
+          .accounts({
+            tipper: tipper.publicKey,
+            tweetAuthor: author.publicKey,
+            treasury: TREASURY_PUBKEY,
+            tweet: tweetPda,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([tipper])
+          .rpc({ commitment: 'confirmed' })
+        assert.fail('Should have thrown ZeroAmount error')
+      } catch (error) {
+        // Anchor error message check
+        const msg = error.message || error.toString()
+        expect(msg).toMatch(/ZeroAmount|Tip amount must be greater than zero/)
+      }
+    })
+
+    it('should fail if tip amount is too small to cover royalty fee', async () => {
+      try {
+        await program.methods
+          .tipTweet(new anchor.BN(1)) // 1 lamport, too small for royalty
+          .accounts({
+            tipper: tipper.publicKey,
+            tweetAuthor: author.publicKey,
+            treasury: TREASURY_PUBKEY,
+            tweet: tweetPda,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .signers([tipper])
+          .rpc({ commitment: 'confirmed' })
+        assert.fail('Should have thrown TipTooSmall error')
+      } catch (error) {
+        const msg = error.message || error.toString()
+        expect(msg).toMatch(/TipTooSmall|Tip amount is too small to cover royalty fee/)
+      }
     })
   })
 })
 
-async function airdrop(connection: any, address: any, amount = 1000000000) {
+async function airdrop(connection: any, address: any, amount = 1 * anchor.web3.LAMPORTS_PER_SOL) {
   await connection.confirmTransaction(await connection.requestAirdrop(address, amount), 'confirmed')
+
+  await sleep(1000)
 }
 
 function getCommentAddress(comment_content: string, author: PublicKey, parent_tweet: PublicKey, programID: PublicKey) {

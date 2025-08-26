@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/twitter.json`.
  */
 export type Twitter = {
-  "address": "4w9BmMtoHQZEF4DTM9R8LDPpqgqnxFfPeaMhHiSMmrQB",
+  "address": "47ofz98ZHkDxec7pBjBqPwq2VqhpK4h1BDhLa8h7zZWb",
   "metadata": {
     "name": "twitter",
     "version": "0.1.0",

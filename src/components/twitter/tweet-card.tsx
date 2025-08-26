@@ -201,7 +201,7 @@ export default function TweetCard({
               <form onSubmit={handleTip} className="flex gap-2">
                 <input
                   type="number"
-                  step="0.01"
+                  step="0.001"
                   min="0.001"
                   value={tipAmount}
                   onChange={(e) => setTipAmount(parseFloat(e.target.value) || 0)}
